@@ -1,0 +1,10 @@
+services:
+  users-api:
+    build:
+      context: ..
+      dockerfile: Users.Api/Dockerfile
+    container_name: users-api
+    ports:
+      - "5001:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development

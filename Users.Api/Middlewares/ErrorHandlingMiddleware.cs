@@ -1,8 +1,8 @@
-﻿using FIAP_Cloud_Games.Domain.Exceptions;
 using System.Net;
 using System.Text.Json;
+using Users.Domain.Exceptions;
 
-namespace FIAP_Cloud_Games.API.Middlewares;
+namespace Users.Api.Middlewares;
 
 public class ErrorHandlingMiddleware : IMiddleware
 {

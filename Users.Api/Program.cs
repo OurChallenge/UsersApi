@@ -1,25 +1,20 @@
-using FIAP_Cloud_Games.API.Middlewares;
-using FIAP_Cloud_Games.Application.Auth;
-using FIAP_Cloud_Games.Infrastructure.Persistence.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using Users.Api.Middlewares;
+using Users.Application.Auth;
+using Users.Infrastructure.Auth;
+using Users.Infrastructure.Persistence.Db;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region Legacy Injections
-
-// Add services to the container.
-// registrar o middleware para injeção (IMiddleware)
 builder.Services.AddTransient<ErrorHandlingMiddleware>();
 
-// --- Authentication e JWT ---
-var key = builder.Configuration["Jwt:Key"];
+var key = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key não configurado.");
 var issuer = builder.Configuration["Jwt:Issuer"];
 var audience = builder.Configuration["Jwt:Audience"];
-
 
 builder.Services.AddAuthentication(options =>
 {
@@ -49,10 +44,12 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Connection string
 builder.Services.AddDbContext<CloudGamesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHealthChecks();
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -70,34 +67,21 @@ builder.Services.AddSwaggerGen(options =>
         [new OpenApiSecuritySchemeReference("Bearer", document, null)] = []
     });
 });
-#endregion
-
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    // Mapeia o endpoint de health check
     app.MapHealthChecks("/health");
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
