@@ -17,7 +17,7 @@ public class UserController : ControllerBase
         _context = context;
     }
 
-    [HttpGet("GetUser")]
+    [HttpGet("GetUserMay")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<User>>> GetUser()
     {
